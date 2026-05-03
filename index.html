@@ -16,7 +16,7 @@
 
 <h2>Deal Calculator 50/50</h2>
 
-<label>Giá nhập</label>
+<label>Giá nhập (chỉ để hoàn tiền)</label>
 <input id="buy" type="number" value="500">
 
 <div class="row">
@@ -75,9 +75,6 @@
 <button onclick="calc()">Tính</button>
 
 <div class="box">
-  <div>Tiền thực thu: <span id="realSell"></span></div>
-  <div>Lãi gộp: <span id="gross"></span></div>
-  <div>Tổng chi phí: <span id="cost"></span></div>
   <div>Lãi ròng: <span id="net"></span></div>
   <div>Mỗi bên ăn: <span id="split"></span></div>
 </div>
@@ -98,9 +95,10 @@ function money(n) {
 }
 
 function calc() {
-  const buy = Number(document.getElementById("buy").value) || 0;
-  const loan = Number(document.getElementById("loan").value) || 0;
   const sell = Number(document.getElementById("sell").value) || 0;
+  const loan = Number(document.getElementById("loan").value) || 0;
+  const buy = Number(document.getElementById("buy").value) || 0;
+
   const at = Number(document.getElementById("at").value) || 0;
   const cl = Number(document.getElementById("cl").value) || 0;
 
@@ -111,9 +109,11 @@ function calc() {
   let atCost = 0;
   let clCost = 0;
 
+  // Giá vay
   if (document.getElementById("loanBy").value === "AT") atCost += loan;
   else clCost += loan;
 
+  // Chi phí
   if (document.getElementById("storageBy").value === "AT") atCost += storage;
   else clCost += storage;
 
@@ -123,18 +123,14 @@ function calc() {
   if (document.getElementById("cafeBy").value === "AT") atCost += cafe;
   else clCost += cafe;
 
-  const realSell = sell - loan;
-  const gross = realSell - buy;
-  const cost = storage + ship + cafe;
-  const net = gross - cost;
+  // 🔥 LOGIC MỚI
+  const net = sell - loan - storage - ship - cafe;
   const split = net / 2;
 
+  // Kết quả
   const atResult = at + atCost + split;
   const clResult = cl + clCost + split;
 
-  document.getElementById("realSell").innerText = money(realSell);
-  document.getElementById("gross").innerText = money(gross);
-  document.getElementById("cost").innerText = money(cost);
   document.getElementById("net").innerText = money(net);
   document.getElementById("split").innerText = money(split);
 
