@@ -4,12 +4,12 @@
   <meta charset="UTF-8" />
   <title>Deal Calculator</title>
   <style>
-    body { font-family: Arial; max-width: 720px; margin: 30px auto; padding: 0 12px; }
-    label { font-weight: bold; }
-    input, select { width: 100%; padding: 10px; margin: 6px 0 14px; box-sizing: border-box; }
-    .row { display: grid; grid-template-columns: 1fr 120px; gap: 10px; align-items: end; }
-    .box { padding: 16px; border: 1px solid #ddd; border-radius: 10px; margin-top: 16px; }
+    body { font-family: Arial; max-width: 720px; margin: 30px auto; padding: 0 12px; background: #000; color: #fff; }
+    input, select { width: 100%; padding: 10px; margin: 6px 0 14px; background: #222; color: #fff; border: 1px solid #444; }
+    .row { display: grid; grid-template-columns: 1fr 120px; gap: 10px; }
+    .box { padding: 16px; border: 1px solid #444; border-radius: 10px; margin-top: 16px; }
     .result { font-size: 20px; font-weight: bold; }
+    button { padding: 10px; width: 100%; background: #444; color: #fff; border: none; }
   </style>
 </head>
 <body>
@@ -17,32 +17,29 @@
 <h2>Deal Calculator 50/50</h2>
 
 <label>Giá nhập</label>
-<input id="buy" type="number" value="2000">
+<input id="buy" type="number" value="500">
 
-<label>Giá vay</label>
-<input id="loan" type="number" value="0">
+<label>Giá vay (trừ khỏi giá bán)</label>
+<input id="loan" type="number" value="500">
 
 <label>Giá bán</label>
-<input id="sell" type="number" value="2140">
+<input id="sell" type="number" value="546">
 
 <label>AT ứng tiền hàng</label>
-<input id="at" type="number" value="40">
+<input id="at" type="number" value="0">
 
 <label>CL ứng tiền hàng</label>
-<input id="cl" type="number" value="1960">
+<input id="cl" type="number" value="0">
 
 <div class="row">
   <div>
     <label>Chi phí lưu kho</label>
-    <input id="storage" type="number" value="5">
+    <input id="storage" type="number" value="55">
   </div>
-  <div>
-    <label>Ai ứng?</label>
-    <select id="storageBy">
-      <option value="AT">AT</option>
-      <option value="CL">CL</option>
-    </select>
-  </div>
+  <select id="storageBy">
+    <option value="AT">AT</option>
+    <option value="CL">CL</option>
+  </select>
 </div>
 
 <div class="row">
@@ -50,33 +47,27 @@
     <label>Chi phí vận chuyển</label>
     <input id="ship" type="number" value="10">
   </div>
-  <div>
-    <label>Ai ứng?</label>
-    <select id="shipBy">
-      <option value="AT">AT</option>
-      <option value="CL">CL</option>
-    </select>
-  </div>
+  <select id="shipBy">
+    <option value="AT">AT</option>
+    <option value="CL">CL</option>
+  </select>
 </div>
 
 <div class="row">
   <div>
     <label>Chi phí cafe</label>
-    <input id="cafe" type="number" value="2">
+    <input id="cafe" type="number" value="0">
   </div>
-  <div>
-    <label>Ai ứng?</label>
-    <select id="cafeBy">
-      <option value="AT">AT</option>
-      <option value="CL">CL</option>
-    </select>
-  </div>
+  <select id="cafeBy">
+    <option value="AT">AT</option>
+    <option value="CL">CL</option>
+  </select>
 </div>
 
 <button onclick="calc()">Tính</button>
 
 <div class="box">
-  <div>Tổng vốn: <span id="totalCapital"></span></div>
+  <div>Tiền thực thu: <span id="realSell"></span></div>
   <div>Lãi gộp: <span id="gross"></span></div>
   <div>Tổng chi phí: <span id="cost"></span></div>
   <div>Lãi ròng: <span id="net"></span></div>
@@ -112,17 +103,12 @@ function calc() {
   let atCost = 0;
   let clCost = 0;
 
-  if (document.getElementById("storageBy").value === "AT") atCost += storage;
-  else clCost += storage;
+  if (storage) (document.getElementById("storageBy").value === "AT") ? atCost += storage : clCost += storage;
+  if (ship) (document.getElementById("shipBy").value === "AT") ? atCost += ship : clCost += ship;
+  if (cafe) (document.getElementById("cafeBy").value === "AT") ? atCost += cafe : clCost += cafe;
 
-  if (document.getElementById("shipBy").value === "AT") atCost += ship;
-  else clCost += ship;
-
-  if (document.getElementById("cafeBy").value === "AT") atCost += cafe;
-  else clCost += cafe;
-
-  const totalCapital = buy + loan;
-  const gross = sell - totalCapital;
+  const realSell = sell - loan;
+  const gross = realSell - buy;
   const cost = storage + ship + cafe;
   const net = gross - cost;
   const split = net / 2;
@@ -130,7 +116,7 @@ function calc() {
   const atResult = at + atCost + split;
   const clResult = cl + clCost + split;
 
-  document.getElementById("totalCapital").innerText = money(totalCapital);
+  document.getElementById("realSell").innerText = money(realSell);
   document.getElementById("gross").innerText = money(gross);
   document.getElementById("cost").innerText = money(cost);
   document.getElementById("net").innerText = money(net);
