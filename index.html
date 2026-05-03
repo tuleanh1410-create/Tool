@@ -2,53 +2,81 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <title>Tool tính dòng tiền</title>
+  <title>Deal Calculator</title>
   <style>
     body { font-family: Arial; max-width: 720px; margin: 30px auto; }
     input { width: 100%; padding: 10px; margin: 6px 0 14px; }
     .box { padding: 16px; border: 1px solid #ddd; border-radius: 10px; margin-top: 16px; }
-    .result { font-size: 22px; font-weight: bold; }
+    .result { font-size: 20px; font-weight: bold; }
   </style>
 </head>
 <body>
-  <h2>Tool tính tiền về TK CL</h2>
 
-  <label>Tiền gốc về CL</label>
-  <input id="base" type="number" value="2140">
+<h2>Deal Calculator (Chia lãi 50/50)</h2>
 
-  <label>Phí / lãi / phần cộng thêm</label>
-  <input id="extra" type="number" value="14.7">
+<label>Giá nhập</label>
+<input id="buy" type="number" value="2000">
 
-  <label>Tiền ứng bởi CL</label>
-  <input id="clAdvance" type="number" value="0">
+<label>Giá bán</label>
+<input id="sell" type="number" value="2140">
 
-  <label>Tiền ứng bởi AT</label>
-  <input id="atAdvance" type="number" value="40.15">
+<label>AT ứng</label>
+<input id="at" type="number" value="40">
 
-  <button onclick="calc()">Tính</button>
+<label>CL ứng</label>
+<input id="cl" type="number" value="1960">
 
-  <div class="box">
-    <p>Tiền về TK CL:</p>
-    <div class="result" id="result">0</div>
-  </div>
+<label>Chi phí vận chuyển</label>
+<input id="ship" type="number" value="10">
 
-  <script>
-    function calc() {
-      const base = Number(document.getElementById("base").value) || 0;
-      const extra = Number(document.getElementById("extra").value) || 0;
-      const clAdvance = Number(document.getElementById("clAdvance").value) || 0;
-      const atAdvance = Number(document.getElementById("atAdvance").value) || 0;
+<label>Chi phí lưu kho</label>
+<input id="storage" type="number" value="5">
 
-      // Logic đúng:
-      // Nếu tiền ứng bởi CL đã nằm trong base thì KHÔNG cộng lại.
-      // Tiền AT ứng thì cộng vào tiền về CL nếu CL cần nhận lại khoản đó.
-      const totalToCL = base + extra + atAdvance;
+<label>Chi phí cafe</label>
+<input id="cafe" type="number" value="2">
 
-      document.getElementById("result").innerText =
-        totalToCL.toLocaleString("vi-VN") + " triệu";
-    }
+<button onclick="calc()">Tính</button>
 
-    calc();
-  </script>
+<div class="box">
+  <div>Lãi gộp: <span id="gross"></span></div>
+  <div>Tổng chi phí: <span id="cost"></span></div>
+  <div>Lãi ròng: <span id="net"></span></div>
+  <div>Mỗi bên ăn: <span id="split"></span></div>
+</div>
+
+<div class="box">
+  <div class="result">AT nhận: <span id="atResult"></span></div>
+  <div class="result">CL nhận: <span id="clResult"></span></div>
+</div>
+
+<script>
+function calc() {
+  const buy = Number(document.getElementById("buy").value) || 0;
+  const sell = Number(document.getElementById("sell").value) || 0;
+  const at = Number(document.getElementById("at").value) || 0;
+  const cl = Number(document.getElementById("cl").value) || 0;
+  const ship = Number(document.getElementById("ship").value) || 0;
+  const storage = Number(document.getElementById("storage").value) || 0;
+  const cafe = Number(document.getElementById("cafe").value) || 0;
+
+  const gross = sell - buy;
+  const cost = ship + storage + cafe;
+  const net = gross - cost;
+  const split = net / 2;
+
+  const atResult = at + split;
+  const clResult = cl + split;
+
+  document.getElementById("gross").innerText = gross;
+  document.getElementById("cost").innerText = cost;
+  document.getElementById("net").innerText = net;
+  document.getElementById("split").innerText = split;
+  document.getElementById("atResult").innerText = atResult;
+  document.getElementById("clResult").innerText = clResult;
+}
+
+calc();
+</script>
+
 </body>
 </html>
