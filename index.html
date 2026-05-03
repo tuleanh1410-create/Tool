@@ -5,8 +5,8 @@
   <title>Deal Calculator</title>
   <style>
     body { font-family: Arial; max-width: 720px; margin: 30px auto; padding: 0 12px; background: #000; color: #fff; }
-    input, select { width: 100%; padding: 10px; margin: 6px 0 14px; background: #222; color: #fff; border: 1px solid #444; }
-    .row { display: grid; grid-template-columns: 1fr 120px; gap: 10px; }
+    input, select { width: 100%; padding: 10px; margin: 6px 0 14px; background: #222; color: #fff; border: 1px solid #444; box-sizing: border-box; }
+    .row { display: grid; grid-template-columns: 1fr 120px; gap: 10px; align-items: end; }
     .box { padding: 16px; border: 1px solid #444; border-radius: 10px; margin-top: 16px; }
     .result { font-size: 20px; font-weight: bold; }
     button { padding: 10px; width: 100%; background: #444; color: #fff; border: none; }
@@ -19,8 +19,16 @@
 <label>Giá nhập</label>
 <input id="buy" type="number" value="500">
 
-<label>Giá vay (trừ khỏi giá bán)</label>
-<input id="loan" type="number" value="500">
+<div class="row">
+  <div>
+    <label>Giá vay</label>
+    <input id="loan" type="number" value="500">
+  </div>
+  <select id="loanBy">
+    <option value="AT">AT</option>
+    <option value="CL">CL</option>
+  </select>
+</div>
 
 <label>Giá bán</label>
 <input id="sell" type="number" value="546">
@@ -75,8 +83,8 @@
 </div>
 
 <div class="box">
-  <div>AT đã ứng chi phí: <span id="atCost"></span></div>
-  <div>CL đã ứng chi phí: <span id="clCost"></span></div>
+  <div>AT được hoàn: <span id="atCost"></span></div>
+  <div>CL được hoàn: <span id="clCost"></span></div>
 </div>
 
 <div class="box">
@@ -103,9 +111,17 @@ function calc() {
   let atCost = 0;
   let clCost = 0;
 
-  if (storage) (document.getElementById("storageBy").value === "AT") ? atCost += storage : clCost += storage;
-  if (ship) (document.getElementById("shipBy").value === "AT") ? atCost += ship : clCost += ship;
-  if (cafe) (document.getElementById("cafeBy").value === "AT") ? atCost += cafe : clCost += cafe;
+  if (document.getElementById("loanBy").value === "AT") atCost += loan;
+  else clCost += loan;
+
+  if (document.getElementById("storageBy").value === "AT") atCost += storage;
+  else clCost += storage;
+
+  if (document.getElementById("shipBy").value === "AT") atCost += ship;
+  else clCost += ship;
+
+  if (document.getElementById("cafeBy").value === "AT") atCost += cafe;
+  else clCost += cafe;
 
   const realSell = sell - loan;
   const gross = realSell - buy;
