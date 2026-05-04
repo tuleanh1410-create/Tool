@@ -6,140 +6,188 @@
   <style>
     body { font-family: Arial; max-width: 720px; margin: 30px auto; padding: 0 12px; background: #000; color: #fff; }
     input, select { width: 100%; padding: 10px; margin: 6px 0 14px; background: #222; color: #fff; border: 1px solid #444; box-sizing: border-box; }
-    .row { display: grid; grid-template-columns: 1fr 120px; gap: 10px; align-items: end; }
+    .row { display: grid; grid-template-columns: 1fr 120px; gap: 10px; }
     .box { padding: 16px; border: 1px solid #444; border-radius: 10px; margin-top: 16px; }
-    .result { font-size: 20px; font-weight: bold; }
-    button { padding: 10px; width: 100%; background: #444; color: #fff; border: none; }
+    .result { font-size: 20px; font-weight: bold; margin-bottom: 14px; }
+    .note { font-size: 12px; color: #aaa; margin-top: 4px; }
   </style>
 </head>
 <body>
 
-<h2>Deal Calculator 50/50</h2>
+<h2>Deal Calculator</h2>
 
-<label>Giá nhập (chỉ để hoàn tiền)</label>
-<input id="buy" type="number" value="500">
+<label>Giá nhập</label>
+<input id="buy" type="number" step="any">
 
+<label>Giá vay</label>
 <div class="row">
-  <div>
-    <label>Giá vay</label>
-    <input id="loan" type="number" value="500">
-  </div>
-  <select id="loanBy">
-    <option value="AT">AT</option>
-    <option value="CL">CL</option>
-  </select>
+  <input id="loan" type="number" step="any">
+  <select id="loanBy"><option>AT</option><option>CL</option></select>
 </div>
 
 <label>Giá bán</label>
-<input id="sell" type="number" value="546">
+<input id="sell" type="number" step="any">
 
-<label>AT ứng tiền hàng</label>
-<input id="at" type="number" value="0">
+<label>AT ứng</label>
+<input id="at" type="number" step="any">
 
-<label>CL ứng tiền hàng</label>
-<input id="cl" type="number" value="0">
+<label>CL ứng</label>
+<input id="cl" type="number" step="any">
 
+<label>Ngày nhập (dd/mm)</label>
+<input id="buyDate" placeholder="12/08">
+
+<label>Ngày bán (dd/mm)</label>
+<input id="sellDate" placeholder="15/08">
+
+<label>Rate lưu kho/ngày</label>
+<input id="rate" type="number" value="700">
+
+<label>Số ngày</label>
+<input id="days" readonly>
+
+<label>Chi phí lưu kho</label>
 <div class="row">
-  <div>
-    <label>Chi phí lưu kho</label>
-    <input id="storage" type="number" value="55">
-  </div>
-  <select id="storageBy">
-    <option value="AT">AT</option>
-    <option value="CL">CL</option>
-  </select>
+  <input id="storage" readonly>
+  <select id="storageBy"><option>AT</option><option>CL</option></select>
 </div>
 
+<label>Vận chuyển</label>
 <div class="row">
-  <div>
-    <label>Chi phí vận chuyển</label>
-    <input id="ship" type="number" value="10">
-  </div>
-  <select id="shipBy">
-    <option value="AT">AT</option>
-    <option value="CL">CL</option>
-  </select>
+  <input id="ship" type="number" step="any">
+  <select id="shipBy"><option>AT</option><option>CL</option></select>
 </div>
 
+<label>Cafe</label>
 <div class="row">
-  <div>
-    <label>Chi phí cafe</label>
-    <input id="cafe" type="number" value="0">
-  </div>
-  <select id="cafeBy">
-    <option value="AT">AT</option>
-    <option value="CL">CL</option>
-  </select>
+  <input id="cafe" type="number" step="any">
+  <select id="cafeBy"><option>AT</option><option>CL</option></select>
 </div>
-
-<button onclick="calc()">Tính</button>
 
 <div class="box">
   <div>Lãi ròng: <span id="net"></span></div>
-  <div>Mỗi bên ăn: <span id="split"></span></div>
+  <div>Lãi mỗi bên: <span id="split"></span></div>
 </div>
 
 <div class="box">
-  <div>AT được hoàn: <span id="atCost"></span></div>
-  <div>CL được hoàn: <span id="clCost"></span></div>
-</div>
+  <div class="result">
+    AT nhận: <span id="atResult"></span>
+    <div class="note" id="atNote"></div>
+  </div>
 
-<div class="box">
-  <div class="result">AT nhận: <span id="atResult"></span></div>
-  <div class="result">CL nhận: <span id="clResult"></span></div>
+  <div class="result">
+    CL nhận: <span id="clResult"></span>
+    <div class="note" id="clNote"></div>
+  </div>
 </div>
 
 <script>
-function money(n) {
-  return Number(n).toLocaleString("vi-VN");
+function money(n){
+  return Number(n).toLocaleString("vi-VN", {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1
+  });
 }
 
-function calc() {
-  const sell = Number(document.getElementById("sell").value) || 0;
-  const loan = Number(document.getElementById("loan").value) || 0;
-  const buy = Number(document.getElementById("buy").value) || 0;
+function parseDM(str){
+  const [d,m] = str.split("/").map(Number);
+  if(!d || !m) return null;
+  return {d,m};
+}
 
-  const at = Number(document.getElementById("at").value) || 0;
-  const cl = Number(document.getElementById("cl").value) || 0;
+function getDays(){
+  const s = parseDM(document.getElementById("buyDate").value);
+  const e = parseDM(document.getElementById("sellDate").value);
+  if(!s || !e) return 0;
 
-  const storage = Number(document.getElementById("storage").value) || 0;
-  const ship = Number(document.getElementById("ship").value) || 0;
-  const cafe = Number(document.getElementById("cafe").value) || 0;
+  const y = new Date().getFullYear();
+  const start = new Date(y, s.m - 1, s.d);
+  let end = new Date(y, e.m - 1, e.d);
 
-  let atCost = 0;
-  let clCost = 0;
+  if(end < start) end = new Date(y + 1, e.m - 1, e.d);
 
-  // Giá vay
-  if (document.getElementById("loanBy").value === "AT") atCost += loan;
-  else clCost += loan;
+  const diff = Math.round((end - start) / (1000 * 60 * 60 * 24));
+  return diff >= 0 ? diff + 1 : 0;
+}
 
-  // Chi phí
-  if (document.getElementById("storageBy").value === "AT") atCost += storage;
-  else clCost += storage;
+function calc(){
+  const sell = +document.getElementById("sell").value || 0;
+  const loan = +document.getElementById("loan").value || 0;
 
-  if (document.getElementById("shipBy").value === "AT") atCost += ship;
-  else clCost += ship;
+  const at = +document.getElementById("at").value || 0;
+  const cl = +document.getElementById("cl").value || 0;
 
-  if (document.getElementById("cafeBy").value === "AT") atCost += cafe;
-  else clCost += cafe;
+  const rate = +document.getElementById("rate").value || 0;
+  const days = getDays();
+  const storage = (loan * rate * days) / 1000000;
 
-  // 🔥 LOGIC MỚI
+  document.getElementById("days").value = days;
+  document.getElementById("storage").value = storage.toFixed(1);
+
+  const ship = +document.getElementById("ship").value || 0;
+  const cafe = +document.getElementById("cafe").value || 0;
+
+  let atCost = at;
+  let clCost = cl;
+
+  let atBreakdown = ["lãi"];
+  let clBreakdown = ["lãi"];
+
+  if(at > 0) atBreakdown.push("AT ứng");
+  if(cl > 0) clBreakdown.push("CL ứng");
+
+  if(document.getElementById("loanBy").value === "AT"){
+    atCost += loan;
+    atBreakdown.push("giá vay");
+  } else {
+    clCost += loan;
+    clBreakdown.push("giá vay");
+  }
+
+  if(document.getElementById("storageBy").value === "AT"){
+    atCost += storage;
+    atBreakdown.push("lưu kho");
+  } else {
+    clCost += storage;
+    clBreakdown.push("lưu kho");
+  }
+
+  if(document.getElementById("shipBy").value === "AT"){
+    atCost += ship;
+    atBreakdown.push("vận chuyển");
+  } else {
+    clCost += ship;
+    clBreakdown.push("vận chuyển");
+  }
+
+  if(document.getElementById("cafeBy").value === "AT"){
+    atCost += cafe;
+    atBreakdown.push("cafe");
+  } else {
+    clCost += cafe;
+    clBreakdown.push("cafe");
+  }
+
   const net = sell - loan - storage - ship - cafe;
   const split = net / 2;
 
-  // Kết quả
-  const atResult = at + atCost + split;
-  const clResult = cl + clCost + split;
+  const atResult = split + atCost;
+  const clResult = split + clCost;
 
   document.getElementById("net").innerText = money(net);
   document.getElementById("split").innerText = money(split);
 
-  document.getElementById("atCost").innerText = money(atCost);
-  document.getElementById("clCost").innerText = money(clCost);
-
   document.getElementById("atResult").innerText = money(atResult);
   document.getElementById("clResult").innerText = money(clResult);
+
+  document.getElementById("atNote").innerText = "(" + atBreakdown.join(" + ") + ")";
+  document.getElementById("clNote").innerText = "(" + clBreakdown.join(" + ") + ")";
 }
+
+document.querySelectorAll("input,select").forEach(e => {
+  e.addEventListener("input", calc);
+  e.addEventListener("change", calc);
+});
 
 calc();
 </script>
